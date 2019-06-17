@@ -1,0 +1,71 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace AssemblyCSharp
+{
+	public class Sapo : Enemy
+	{
+		[SerializeField]
+		private float alturaPulo;
+		[SerializeField]
+		private float distanciaPulo;
+		[SerializeField]
+		private float intervaloPulo;
+		private float intervaloCount = 0.5f;
+		[SerializeField]
+		private int MaxQtdPulos;
+		private int qtdPulos;
+
+		void Start () {
+			facingRight = false;
+			health = maxHealth;
+			spawnLocation = transform.position;
+			spawnRotation = transform.rotation;
+			anim = GetComponent<Animator> ();
+			rb = GetComponent<Rigidbody2D> ();
+			qtdPulos = MaxQtdPulos;
+			deathSound = "frog";
+			if (MaxQtdPulos == 0) {
+				Flip();
+			}
+		}
+
+		void FixedUpdate () {
+			IsGrounded ();
+			FicaParado ();
+			Pulo ();
+
+			UpdateAnim ();
+		}
+
+		// pulo do sapo
+		private void Pulo () {
+			if (intervaloCount <= 0 && grounded) {
+				if (qtdPulos == 0) {
+					Flip();
+					qtdPulos = MaxQtdPulos;
+				}
+				rb.velocity = new Vector2(distanciaPulo * (facingRight ? 1 : -1), alturaPulo);
+				intervaloCount = intervaloPulo;
+				if (MaxQtdPulos != -1) {
+					qtdPulos -= 1;
+				}
+			} else {
+				intervaloCount -= Time.deltaTime;
+			}
+		}
+
+		// método para o sapo parar de ficar fugindo quando aterrissa
+		private void FicaParado () {
+			if (grounded && intervaloCount < intervaloPulo * 0.9) {
+				rb.velocity = new Vector2(0f, rb.velocity.y);
+			}
+		}
+
+		protected override void UpdateAnim () {
+			anim.SetBool ("grounded", grounded);
+			anim.SetFloat ("velocityY", rb.velocity.y);
+		}
+	}
+}
